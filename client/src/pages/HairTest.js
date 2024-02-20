@@ -2,28 +2,41 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Layout from '../components/Layout.js'
 import Appointment from '../images/appointment.jpg'
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import { Document, Page, Text } from '@react-pdf/renderer';
 
-const Test = () => {
-  const [image, setImage] = useState(null);
-  const [imageShow, setImageShow] = useState(null);
-  const [prediction, setPrediction] = useState(null);
+const HairTest = () => {
+  const [hairImage, setHairImage] = useState(null);
+  const [hairImageShow, setHairImageShow] = useState(null);
+  const [hairPrediction, setHairPrediction] = useState(null);
+  const [pdfReady, setPdfReady] = useState(false);
+  const [pdfContent, setPdfContent] = useState(null);
 
+  const generatePDF = async () => {
+    try {
+      const response = await axios.get('/generate-pdf');
+      setPdfContent(response.data);
+      setPdfReady(true);
+    } catch (error) {
+      console.error('Error fetching PDF:', error);
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setImage(file);
+    setHairImage(file);
     const imageUrl = URL.createObjectURL(file);
-    setImageShow(imageUrl);
+    setHairImageShow(imageUrl);
   };
 
   const handleUpload = () => {
     const formData = new FormData();
-    formData.append('image', image);
+    formData.append('image', hairImage);
 
-    axios.post('http://localhost:8001/Test', formData)
+    axios.post('http://localhost:8001//Hairtest', formData)
       .then(response => {
         console.log(response.data);
-        setPrediction(response.data.prediction);
+        setHairPrediction(response.data.prediction);
       })
       .catch(error => {
         console.error('Error:', error);
@@ -38,10 +51,40 @@ const Test = () => {
           <div className="flex flex-col md:flex-row items-center justify-center">
             <div className="mb-12 md:mb-0 md:w-4/12 lg:w-6/12">
               <img src={Appointment} className="w-2/3 rounded-lg" alt="Phone image" />
+              <div>
+                <button
+                    onClick={generatePDF}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-5 ml-8"
+                >
+                    Generate Report
+                </button>
+                {pdfReady && (
+                    <PDFDownloadLink
+                    document={<Document file={pdfContent} />}
+                    fileName="example.pdf"
+                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
+                    >
+                    {({ loading }) =>
+                        loading ? 'Loading document...' : 'Download PDF'
+                    }
+                    </PDFDownloadLink>
+                )}
+                {pdfReady && (
+                    <PDFViewer className="h-64 mt-4">
+                    <Document file={pdfContent}>
+                        <Page>
+                        <Text>Preview of PDF</Text>
+                        </Page>
+                    </Document>
+                    </PDFViewer>
+                )}
+                </div>
             </div>
+            
+
             <div className="md:w-8/12 justify-center p-3 lg:ml-2 lg:w-5/12">
-                    <h1 className="text-center font-extrabold text-4xl mt-10 mb-10">Take a <span className="text-[rgb(18,102,241)]">Skin Test</span></h1>
-                    <p className="text-center font-bold text-2xl mt-2 mb-5">Get a Preliminary Diagnosis by taking skin test</p>
+                    <h1 className="text-center font-extrabold text-4xl mt-10 mb-10">Take a <span className="text-[rgb(18,102,241)]">Hair Test</span></h1>
+                    <p className="text-center font-bold text-2xl mt-2 mb-5">Get a Preliminary Diagnosis by taking hair test</p>
                     
 
                     <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-[#F9D0BE]">
@@ -53,15 +96,15 @@ const Test = () => {
                         <input type="file" onChange={handleFileChange} name="image" accept="image/*" id="image-upload"  className="hidden" />
                     </label>
                     <div className="flex items-center justify-center m-2 w-full">
-                      {imageShow && <img src={imageShow} id="output" width="200" alt="Selected" />}
+                      {hairImageShow && <img src={hairImageShow} id="output" width="200" alt="Selected" />}
                    </div>
                     <button onClick={handleUpload}  className="mt-3 bg-[rgb(63,61,86)] text-white inline-block w-full rounded px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(0,0,0,0.2)] transition duration-150 ease-in-out hover:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:outline-none focus:ring-0 active:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)]">Upload</button>
 
-                    {prediction && (
+                    {hairPrediction && (
                     <div className="mt-2">
                         <h1 className="text-xl mt-2 text-center">Disease Detected</h1>
                         <div className="w-full mt-2 bg-green-100 border border-blue-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                        <span className="block sm:inline text-center"><strong>{prediction}</strong></span>
+                        <span className="block sm:inline text-center"><strong>{hairPrediction}</strong></span>
                         </div>
                     </div>
                     )}
@@ -74,4 +117,4 @@ const Test = () => {
   );
 };
 
-export default Test;
+export default HairTest;

@@ -211,33 +211,50 @@ def upload_image():
 
 #------------------------------------------------------------------------------------------------
 
-@app.route('/hairtest',methods=['GET','POST'])
+@app.route('/Hairtest',methods=['GET','POST'])
 def hair():
      if request.method == 'POST':
         filename = UPLOAD_FOLDER +str(int(np.random.randint(0, 5000))) + '.jpg'
         file = request.files['image']
         
-        file.save(filename)
-        print('File saved', filename)
-        print(str(filename))
+        # file.save(filename)
+        # print('File saved', filename)
+        # print(str(filename))
 
-        pred = predict_hair(filename)
+        # pred = predict_hair(filename)
 
-        my_dict = pred
+        # my_dict = pred
 
-        highest_key = None
-        highest_value = float('-inf')  # set to lowest possible value initially
-        for key, value in my_dict.items():
-            if value > highest_value:
-                highest_value = value
-                highest_key = key
+        # highest_key = None
+        # highest_value = float('-inf')  # set to lowest possible value initially
+        # for key, value in my_dict.items():
+        #     if value > highest_value:
+        #         highest_value = value
+        #         highest_key = key
 
-        #print(highest_key)
-        disease = highest_key
+        # #print(highest_key)
+        # disease = highest_key
 
-        return render_template('hair.html',disease=disease)
+        if file:
+            file.save(filename)
+            print('File saved:', filename)
 
-     return render_template('hair.html')
+        # Perform prediction on the uploaded image
+            pred = predict_hair(filename)
+            highest_key = None
+            highest_value = float('-inf')  # set to lowest possible value initially
+            for key, value in pred.items():
+               if value > highest_value:
+                  highest_value = value
+                  highest_key = key
+
+            # The predicted disease
+            disease = highest_key
+            print(disease)
+            # return jsonify({'message': 'Image uploaded successfully', 'filename': filename})
+            return jsonify({'prediction': disease})
+        else:
+            return jsonify({'error': 'No file part'})
  
 def predict_hair(image):
     classes = {0:'Alopecia Areata',
